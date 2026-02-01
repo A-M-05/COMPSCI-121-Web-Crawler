@@ -1,9 +1,30 @@
 import re
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urljoin
+from bs4 import BeautifulSoup
+
+ALLOWED_DOMAINS = (
+    "ics.uci.edu",
+    "cs.uci.edu",
+    "informatics.uci.edu",
+    "stat.uci.edu"
+)
 
 def scraper(url, resp):
     links = extract_next_links(url, resp)
     return [link for link in links if is_valid(link)]
+
+def tokenizer(raw_html: bytes, url: str):
+    # Tokenizes HTML content from a page
+    soup = BeautifulSoup(raw_html, "html.parser")
+    anchor_tags = soup.find_all('a', href=True)
+    found_links = set() # Use a set to avoid duplicate links
+    for tag in anchor_tags:
+        href = tag.get('href')
+        if href:
+            # Resolve relative URLs to absolute URLs
+            absolute_url = urljoin(url, href)
+            found_links.add(absolute_url)
+    return list(found_links)
 
 def extract_next_links(url, resp):
     # Implementation required.
@@ -15,6 +36,10 @@ def extract_next_links(url, resp):
     #         resp.raw_response.url: the url, again
     #         resp.raw_response.content: the content of the page!
     # Return a list with the hyperlinks (as strings) scrapped from resp.raw_response.content
+    if is_valid(url):
+        if resp.status == 200 and resp.raw_response.content is not None:
+            tokens = tokenizer(str(resp.raw_response.content, "utf-8"), resp.url)
+    print(tokens)
     return list()
 
 def is_valid(url):
@@ -24,6 +49,10 @@ def is_valid(url):
     try:
         parsed = urlparse(url)
         if parsed.scheme not in set(["http", "https"]):
+            return False
+        if parsed.hostname is None:
+            return False
+        if not any(parsed.hostname.endswith(domain) for domain in ALLOWED_DOMAINS):
             return False
         return not re.match(
             r".*\.(css|js|bmp|gif|jpe?g|ico"
