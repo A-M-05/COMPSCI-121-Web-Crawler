@@ -13,7 +13,7 @@ def scraper(url, resp):
     links = extract_next_links(url, resp)
     return [link for link in links if is_valid(link)]
 
-def tokenizer(raw_html: bytes, url: str):
+def tokenizer(raw_html: str, url: str):
     # Tokenizes HTML content from a page
     soup = BeautifulSoup(raw_html, "html.parser")
     anchor_tags = soup.find_all('a', href=True)
