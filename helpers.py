@@ -111,7 +111,7 @@ def link_extractor(raw_html: str, base_url: str):
     Parse raw HTML content and extract all absolute, defragmented hyperlinks found
     in anchor tags.
     """
-    html = _to_text(raw_html)
+    html = to_text(raw_html)
     soup = BeautifulSoup(html, "html.parser")
     found = set()
     for a in soup.find_all("a", href=True):
