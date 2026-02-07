@@ -30,10 +30,13 @@ def extract_next_links(url, resp):
         href = a["href"].strip()
         if not href or href.startswith(("mailto:", "javascript:", "tel:")):
             continue
+        try:
+            joined = urljoin(resp.url, href)
+            defragged, _ = urldefrag(joined)
+        except ValueError:
+            continue
 
-        joined = urljoin(resp.url, href)
-        clean, _ = urldefrag(joined)
-        found.add(clean)
+        found.add(defragged)
 
     return list(found)
 
