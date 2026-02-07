@@ -1,63 +1,51 @@
-from imports import *
 from helpers import *
 
-def scraper(url, resp):
-    """
-    Process a fetched web page: reject invalid or low-information pages, extract and
-    normalize outgoing links, and return only those URLs that are valid for crawling.
-    """
 
-    # Reject non-200 / empty URLS
+def scraper(url, resp):
     if resp.status != 200 or resp.raw_response is None or resp.raw_response.content is None:
         return []
 
     html = to_text(resp.raw_response.content)
     text = extract_visible_text(html)
-    tokens = tokenize_text(text)
 
-    if len(tokens) < MIN_WORDS:
+    if len(tokenize(text)) < MIN_WORDS:
         return []
 
-    out = []
-    for link in link_extractor(html, resp.url):
+    update_analytics(resp.url, text)
+
+    links = []
+    for link in extract_next_links(url, resp):
         n = normalize_url(link)
         if is_valid(n):
-            out.append(n)
-    return out
+            links.append(n)
+    return links
+
 
 def extract_next_links(url, resp):
-    """
-    Extract all outgoing hyperlinks from a successfully fetched web page response
-    and return them as a list of absolute URLs.
-    """
-    # url: the URL that was used to get the page
-    # resp.url: the actual url of the page
-    # resp.status: the status code returned by the server. 200 is OK, you got the page. Other numbers mean that there was some kind of problem.
-    # resp.error: when status is not 200, you can check the error here, if needed.
-    # resp.raw_response: this is where the page actually is. More specifically, the raw_response has two parts:
-    #         resp.raw_response.url: the url, again
-    #         resp.raw_response.content: the content of the page!
-    # Return a list with the hyperlinks (as strings) scrapped from resp.raw_response.content
-    
-    if resp.status != 200 or resp.raw_response is None or resp.raw_response.content is None:
-        return []
+    html = to_text(resp.raw_response.content)
+    soup = BeautifulSoup(html, "html.parser")
+    found = set()
 
-    content = resp.raw_response.content
-    base = resp.url
-    return link_extractor(content, base)
+    for a in soup.find_all("a", href=True):
+        href = a["href"].strip()
+        if not href or href.startswith(("mailto:", "javascript:", "tel:")):
+            continue
+
+        joined = urljoin(resp.url, href)
+        clean, _ = urldefrag(joined)
+        found.add(clean)
+
+    return list(found)
+
 
 def is_valid(url):
-    """
-    Determine whether a URL is allowed to be crawled based on scheme, domain,
-    path patterns, query parameters, trap detection, and file type restrictions.
-    """
     try:
         parsed = urlparse(url)
-        if parsed.scheme not in {"http", "https"}:
+
+        if parsed.scheme not in {"http","https"}:
             return False
 
-        host = parsed.hostname
-        if host is None or not host_allowed(host):
+        if parsed.hostname is None or not host_allowed(parsed.hostname):
             return False
 
         if has_trap_path(parsed.path):
@@ -80,5 +68,6 @@ def is_valid(url):
             r"|rm|smil|wmv|swf|wma|zip|rar|gz)$",
             parsed.path.lower()
         )
-    except TypeError:
+
+    except Exception:
         return False
