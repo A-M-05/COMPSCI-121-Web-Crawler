@@ -23,6 +23,18 @@ STOP_WORDS = [
     'you','your','yours','yourself','yourselves'
 ]
 
+# words that are common on *your domains* but useless for "top words"
+DOMAIN_STOP_WORDS = {
+    "ics", "uci", "edu", "wiki", "php", "doku", "https", "http",
+    "login", "password", "account", "email", "access", "support",
+    "please", "ssh", "key", "credentials", "authentication", "restricted",
+    "obtaining", "privileges", "logged", "remember", "cookies", "affiliates",
+    "insufficient", "enabled", "enter", "currently", "make", "sure",
+    "helpdesk", "hardware", "software", "services", "group", "log",
+    "page", "pages", "section", "file", "files", "user", "users"
+}
+
+# not strictly needed if you use the manual tokenizer, but fine to keep
 WORD_RE = re.compile(r"[a-zA-Z0-9]+(?:['-][a-zA-Z0-9]+)?")
 
 ALLOWED_DOMAINS = (
@@ -32,16 +44,23 @@ ALLOWED_DOMAINS = (
     "stat.uci.edu"
 )
 
+# query keys that indicate infinite calendars, search pages, tracking params, etc.
 TRAP_QUERY_KEYS = {
     "outlook-ical", "ical", "tribe-bar-date", "eventdisplay",
     "utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content",
-    "share", "replytocom", "redirect_to", "ajax", "format", "feed"
+    "share", "replytocom", "redirect_to", "ajax", "format", "feed",
+    "do", "idx", "rev", "tab", "ns", "search", "q",
+    "s", "id", "page", "offset", "limit", "start",
+    "sort", "order", "filter", "view"
 }
 
+# path substrings that often represent trap-like navigation
 TRAP_PATH_SUBSTRINGS = (
-    "/calendar", "/events/", "/event/",
-    "/wp-admin", "/wp-login",
-    "/feed", "/rss", "/xml", "/json"
+    "/calendar", "/events/", "/event/", "/feed", "/rss", "/xml", "/json",
+    "/wp-admin", "/wp-login", "/tag/", "/category/", "/author/",
+    "/print/", "/pdf/", "/export/", "/download/",
+    "/search", "/query", "/results", "/action/", "/special/",
+    "/recent", "/revisions", "/history",
 )
 
 MIN_WORDS = 50

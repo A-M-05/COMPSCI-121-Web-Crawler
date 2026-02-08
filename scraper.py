@@ -8,7 +8,8 @@ def scraper(url, resp):
     html = to_text(resp.raw_response.content)
     text = extract_visible_text(html)
 
-    if len(tokenize(text)) < MIN_WORDS:
+    # do NOT waste time extracting links from near-empty pages
+    if count_all_words(text) < MIN_WORDS:
         return []
 
     update_analytics(resp.url, text)
@@ -34,8 +35,8 @@ def extract_next_links(url, resp):
             joined = urljoin(resp.url, href)
             defragged, _ = urldefrag(joined)
         except ValueError:
+            # fixes crash on junk like [YOUR_IP] / [YOUR-AWS-PUBLIC-IP]
             continue
-
         found.add(defragged)
 
     return list(found)
@@ -45,7 +46,7 @@ def is_valid(url):
     try:
         parsed = urlparse(url)
 
-        if parsed.scheme not in {"http","https"}:
+        if parsed.scheme not in {"http", "https"}:
             return False
 
         if parsed.hostname is None or not host_allowed(parsed.hostname):
@@ -60,6 +61,22 @@ def is_valid(url):
         if too_many_variants(url):
             return False
 
+        # doku.php traps (your teammate added this; keep it)
+        if "doku.php" in (parsed.path or "").lower():
+            params = dict(parse_qsl(parsed.query))
+            blocked_actions = {"search", "recent", "index", "revisions", "backlink"}
+
+            do_value = params.get("do", "")
+            if do_value in blocked_actions:
+                return False
+
+            if "rev" in params:
+                return False
+
+            if params.get("idx") and not params.get("id"):
+                return False
+
+        # reject non-html resources (KEEP extensions; you were right to call that out)
         return not re.match(
             r".*\.(css|js|bmp|gif|jpe?g|ico"
             r"|png|tiff?|mid|mp2|mp3|mp4"
@@ -68,8 +85,10 @@ def is_valid(url):
             r"|data|dat|exe|bz2|tar|msi|bin|7z|psd|dmg|iso"
             r"|epub|dll|cnf|tgz|sha1"
             r"|thmx|mso|arff|rtf|jar|csv"
-            r"|rm|smil|wmv|swf|wma|zip|rar|gz)$",
-            parsed.path.lower()
+            r"|rm|smil|wmv|swf|wma|zip|rar|gz"
+            r"|apk|ipa|deb|rpm|img|toast|vcd"
+            r"|txt|ppsx|pps|potx|pot|pptm|potm|ppam|ppsm)$",
+            (parsed.path or "").lower()
         )
 
     except Exception:
