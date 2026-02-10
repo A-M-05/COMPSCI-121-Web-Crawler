@@ -12,18 +12,17 @@ from bs4 import BeautifulSoup
 STOP_WORDS = [
     'a','about','above','after','again','against','all','am','an','and','any','are',
     'as','at','be','because','been','before','being','below','between','both','but',
-    'by','could','did','do','does','doing','down','during','each','few','for','from',
-    'further','had','has','have','having','he','her','here','hers','herself','him',
-    'himself','his','how','i','if','in','into','is','it','its','itself','me','more',
-    'most','my','myself','no','nor','not','of','off','on','once','only','or','other',
-    'our','ours','ourselves','out','over','own','same','she','should','so','some',
-    'such','than','that','the','their','theirs','them','themselves','then','there',
-    'these','they','this','those','through','to','too','under','until','up','very',
-    'was','we','were','what','when','where','which','while','who','whom','why','with',
-    'you','your','yours','yourself','yourselves'
+    'by', 'can','could','did','do','does','doing','down','during','each','few','for',
+    'from', 'further','had','has','have','having','he','her','here','hers','herself',
+    'him', 'himself','his','how','i','if','in','into','is','it','its','itself','me',
+    'more', 'most','my','myself','no','nor','not','of','off','on','once','only','or',
+    'other','our','ours','ourselves','out','over','own','same','she','should','so',
+    'some','such','than','that','the','their','theirs','them','themselves','then',
+    'there','these','they','this','those','through','to','too','under','until','up',
+    'very', 'was','we','were','what','when','where','which','while','who','whom','why',
+    'with','you','your','yours','yourself','yourselves'
 ]
 
-# words that are common on *your domains* but useless for "top words"
 DOMAIN_STOP_WORDS = {
     "ics", "uci", "edu", "wiki", "php", "doku", "https", "http",
     "login", "password", "account", "email", "access", "support",
@@ -34,9 +33,6 @@ DOMAIN_STOP_WORDS = {
     "page", "pages", "section", "file", "files", "user", "users"
 }
 
-# not strictly needed if you use the manual tokenizer, but fine to keep
-WORD_RE = re.compile(r"[a-zA-Z0-9]+(?:['-][a-zA-Z0-9]+)?")
-
 ALLOWED_DOMAINS = (
     "ics.uci.edu",
     "cs.uci.edu",
@@ -44,7 +40,6 @@ ALLOWED_DOMAINS = (
     "stat.uci.edu"
 )
 
-# query keys that indicate infinite calendars, search pages, tracking params, etc.
 TRAP_QUERY_KEYS = {
     "outlook-ical", "ical", "tribe-bar-date", "eventdisplay",
     "utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content",
@@ -54,7 +49,6 @@ TRAP_QUERY_KEYS = {
     "sort", "order", "filter", "view"
 }
 
-# path substrings that often represent trap-like navigation
 TRAP_PATH_SUBSTRINGS = (
     "/calendar", "/events/", "/event/", "/feed", "/rss", "/xml", "/json",
     "/wp-admin", "/wp-login", "/tag/", "/category/", "/author/",

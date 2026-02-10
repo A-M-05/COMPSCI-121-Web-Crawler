@@ -16,6 +16,24 @@ SUBDOMAIN_PAGES = defaultdict(set)   # host -> set(canonical urls)
 PATH_QUERY_SEEN = defaultdict(set)   # (netloc, path) -> set(queries)
 
 
+BAD_URLS = set()
+
+def mark_bad_url(url: str) -> None:
+    """
+    Record a URL as "bad" so we can refuse it later.
+    URL should already be normalized/defragmented by caller.
+    """
+    if url:
+        BAD_URLS.add(url)
+
+def is_bad_url(url: str) -> bool:
+    """
+    Return True if URL was previously recorded as bad.
+    URL should already be normalized/defragmented by caller.
+    """
+    return url in BAD_URLS
+
+
 # ---------------- UTILS ----------------
 
 def to_text(content):
@@ -170,7 +188,6 @@ def canonicalize_for_count(url: str) -> str:
 # ---------------- TRAP DETECTION ----------------
 
 def has_trap_query(parsed) -> bool:
-    # if ANY trap key appears, reject
     return any(k.lower() in TRAP_QUERY_KEYS for k, _ in parse_qsl(parsed.query))
 
 

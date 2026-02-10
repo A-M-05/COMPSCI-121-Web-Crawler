@@ -2,13 +2,27 @@ from helpers import *
 
 
 def scraper(url, resp):
-    if resp.status != 200 or resp.raw_response is None or resp.raw_response.content is None:
+    if resp is None or resp.raw_response is None:
+        return []
+
+    status = resp.status
+
+    if status in {404, 410, 403, 600, 601, 602, 603, 604, 605, 606, 607}:
+        try:
+            final_url = resp.url or url
+            final_url, _ = urldefrag(final_url)
+            final_url = normalize_url(final_url)
+            mark_bad_url(final_url)
+        except Exception:
+            pass
+        return []
+
+    if status != 200 or resp.raw_response.content is None:
         return []
 
     html = to_text(resp.raw_response.content)
     text = extract_visible_text(html)
 
-    # do NOT waste time extracting links from near-empty pages
     if count_all_words(text) < MIN_WORDS:
         return []
 
@@ -35,7 +49,6 @@ def extract_next_links(url, resp):
             joined = urljoin(resp.url, href)
             defragged, _ = urldefrag(joined)
         except ValueError:
-            # fixes crash on junk like [YOUR_IP] / [YOUR-AWS-PUBLIC-IP]
             continue
         found.add(defragged)
 
@@ -52,6 +65,10 @@ def is_valid(url):
         if parsed.hostname is None or not host_allowed(parsed.hostname):
             return False
 
+        n = normalize_url(url)
+        if is_bad_url(n):
+            return False
+
         if has_trap_path(parsed.path):
             return False
 
@@ -61,22 +78,23 @@ def is_valid(url):
         if too_many_variants(url):
             return False
 
-        # doku.php traps (your teammate added this; keep it)
-        if "doku.php" in (parsed.path or "").lower():
+        path = parsed.path.lower()
+
+        if "/events/" in path:
+            if any(x in path for x in ("/day/", "/list", "/month")):
+                return False
+
+        if "doku.php" in path:
             params = dict(parse_qsl(parsed.query))
             blocked_actions = {"search", "recent", "index", "revisions", "backlink"}
 
-            do_value = params.get("do", "")
-            if do_value in blocked_actions:
+            if params.get("do") in blocked_actions:
                 return False
-
             if "rev" in params:
                 return False
-
             if params.get("idx") and not params.get("id"):
                 return False
 
-        # reject non-html resources (KEEP extensions; you were right to call that out)
         return not re.match(
             r".*\.(css|js|bmp|gif|jpe?g|ico"
             r"|png|tiff?|mid|mp2|mp3|mp4"
@@ -88,7 +106,7 @@ def is_valid(url):
             r"|rm|smil|wmv|swf|wma|zip|rar|gz"
             r"|apk|ipa|deb|rpm|img|toast|vcd"
             r"|txt|ppsx|pps|potx|pot|pptm|potm|ppam|ppsm)$",
-            (parsed.path or "").lower()
+            path
         )
 
     except Exception:
