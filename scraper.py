@@ -23,7 +23,7 @@ def scraper(url, resp):
     html = to_text(resp.raw_response.content)
     text = extract_visible_text(html)
 
-    if count_all_words(text) < MIN_WORDS:
+    if len(tokenize_with_stopwords(text)) < MIN_WORDS:
         return []
 
     update_analytics(resp.url, text)

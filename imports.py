@@ -30,7 +30,8 @@ DOMAIN_STOP_WORDS = {
     "obtaining", "privileges", "logged", "remember", "cookies", "affiliates",
     "insufficient", "enabled", "enter", "currently", "make", "sure",
     "helpdesk", "hardware", "software", "services", "group", "log",
-    "page", "pages", "section", "file", "files", "user", "users"
+    "page", "pages", "section", "file", "files", "user", "users", "html",
+    "pdf", "kb", "trac", "download", "index", "automatic"
 }
 
 ALLOWED_DOMAINS = (

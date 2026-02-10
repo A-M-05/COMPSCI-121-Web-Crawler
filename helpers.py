@@ -106,28 +106,6 @@ def tokenize_with_stopwords(text_content: str) -> list[str]:
 
     return tokens
 
-
-def count_all_words(text_content: str) -> int:
-    """
-    Count ALL words including stopwords (for longest page calculation).
-    """
-    current = []
-    count = 0
-
-    text_lower = text_content.lower()
-
-    for char in text_lower:
-        if char.isalnum() and char.isascii():
-            current.append(char)
-        else:
-            if current:
-                count += 1
-                current = []
-    if current:
-        count += 1
-    return count
-
-
 def host_allowed(host: str) -> bool:
     return any(host == d or host.endswith("." + d) for d in ALLOWED_DOMAINS)
 
@@ -226,11 +204,14 @@ def update_analytics(url: str, text: str):
 
     canon = canonicalize_for_count(url)
     parsed = urlparse(canon)
-    host = parsed.hostname or ""
+    host = parsed.hostname.lower() or ""
 
-    word_count = count_all_words(text)
+    if host.startswith("www."):
+        host = host[4:]
+
     content_tokens = tokenize(text)
     all_tokens = tokenize_with_stopwords(text)
+    word_count = len(all_tokens)
 
     with _ANALYTICS_LOCK:
         if canon in UNIQUE_PAGES:
