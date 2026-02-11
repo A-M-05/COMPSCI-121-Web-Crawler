@@ -47,7 +47,7 @@ TRAP_QUERY_KEYS = {
     "share", "replytocom", "redirect_to", "ajax", "format", "feed",
     "do", "idx", "rev", "tab", "ns", "search", "q",
     "s", "id", "page", "offset", "limit", "start",
-    "sort", "order", "filter", "view"
+    "sort", "order", "filter", "view", "action"
 }
 
 TRAP_PATH_SUBSTRINGS = (
@@ -55,10 +55,10 @@ TRAP_PATH_SUBSTRINGS = (
     "/wp-admin", "/wp-login", "/tag/", "/category/", "/author/",
     "/print/", "/pdf/", "/export/", "/download/",
     "/search", "/query", "/results", "/action/", "/special/",
-    "/recent", "/revisions", "/history",
+    "/recent", "/revisions", "/history"
 )
 
 MIN_WORDS = 50
 MAX_PARAMS = 6
 MAX_QUERY_LEN = 120
-MAX_VARIANTS_PER_PATH = 50
+MAX_VARIANTS_PER_PATH = 20

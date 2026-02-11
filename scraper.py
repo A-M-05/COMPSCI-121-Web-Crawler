@@ -19,6 +19,15 @@ def scraper(url, resp):
 
     if status != 200 or resp.raw_response.content is None:
         return []
+    
+    content_type = ""
+    try:
+        content_type = (resp.raw_response.headers.get("Content-Type") or "").lower()
+    except Exception:
+        pass
+
+    if content_type and "text/html" not in content_type:
+        return []
 
     html = to_text(resp.raw_response.content)
     text = extract_visible_text(html)
